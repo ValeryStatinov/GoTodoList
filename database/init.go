@@ -38,14 +38,15 @@ func ShowTasksTable() {
 	defer rows.Close()
 
 	for rows.Next() {
-		var id int
-		var name string
-		err := rows.Scan(&id, &name)
+		var id, project_id, user_id int
+		var name, description string
+
+		err := rows.Scan(&id, &name, &description, &project_id, &user_id)
 		if err != nil {
 			fmt.Println("error scan")
 			return
 		}
-		fmt.Println(id, name)
+		fmt.Println(id, name, description, project_id, user_id)
 	}
 	if err = rows.Err(); err != nil {
 		fmt.Println("error rows")

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/valerystatinov/TodoList/database"
 )
 
 type Task struct {
@@ -29,6 +31,12 @@ func HandleTasks(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	err = json.Unmarshal(body, &task)
+	if err != nil {
+		http.Error(writer, err.Error(), 500)
+		return
+	}
+
+	_, err = database.GetPreparedInsertIntoTasksStmt().Exec(task.Name, task.Description, task.ProjectID, task.UserID)
 	if err != nil {
 		http.Error(writer, err.Error(), 500)
 		return
