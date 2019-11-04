@@ -1,30 +1,33 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"github.com/valerystatinov/TodoList/database"
+	"github.com/valerystatinov/TodoList/models/projects"
 	"github.com/valerystatinov/TodoList/models/tasks"
 )
 
-func index(writer http.ResponseWriter, request *http.Request) {
-	fmt.Println("index")
-	fmt.Fprintf(writer, "Hello world")
-}
-
 func main() {
 	database.InitDB()
-	database.ShowTasksTable()
 
-	http.HandleFunc("/tasks/", tasks.HandleTasks)
-	http.HandleFunc("/", index)
+	router := mux.NewRouter()
+
+	router.HandleFunc("/projects/", projects.HandleProjects).Methods("GET", "POST")
+	router.HandleFunc("/tasks/", tasks.HandleTasks).Methods("GET", "POST")
+
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+	// router.NotFoundHandler = http.HandlerFunc(customNotFoundHandler)
+
+	http.Handle("/", handlers.CORS(originsOk, headersOk, methodsOk)(router))
+
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
 		panic(err)
 	}
 }
-
-// var lastInsertedID = -1
-// err = db.QueryRow("INSERT INTO tasks (NAME) VALUES ('Kostya') RETURNING ID").Scan(&lastInsertedID)
-// fmt.Println(lastInsertedID)

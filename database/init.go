@@ -28,28 +28,3 @@ func GetDBInstance() *sql.DB {
 	}
 	panic("Can't return pointer to db, no established connection")
 }
-
-func ShowTasksTable() {
-	rows, err := db.Query("SELECT * FROM tasks")
-	if err != nil {
-		fmt.Println("error query")
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id, project_id, user_id int
-		var name, description string
-
-		err := rows.Scan(&id, &name, &description, &project_id, &user_id)
-		if err != nil {
-			fmt.Println("error scan")
-			return
-		}
-		fmt.Println(id, name, description, project_id, user_id)
-	}
-	if err = rows.Err(); err != nil {
-		fmt.Println("error rows")
-		return
-	}
-}
