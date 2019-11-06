@@ -12,10 +12,11 @@ type Task struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	ProjectID   int    `json:"projectId"`
+	Priority    int    `json:"priority"`
 }
 
-func newTask(id int, name string, description string, projectID int) Task {
-	task := Task{id, name, description, projectID}
+func newTask(id int, name string, description string, projectID int, priority int) Task {
+	task := Task{id, name, description, projectID, priority}
 	return task
 }
 
@@ -40,16 +41,16 @@ func HandleTasks(writer http.ResponseWriter, request *http.Request) {
 
 		tasks := make([]Task, 0)
 		for rows.Next() {
-			var id, projectId int
+			var id, projectId, priority int
 			var name, description string
 
-			err := rows.Scan(&id, &name, &description, &projectId)
+			err := rows.Scan(&id, &name, &description, &projectId, &priority)
 			if err != nil {
 				fmt.Println("error scan")
 				return
 			}
 
-			tasks = append(tasks, newTask(id, name, description, projectId))
+			tasks = append(tasks, newTask(id, name, description, projectId, priority))
 		}
 
 		js, err := json.Marshal(tasks)
@@ -81,7 +82,7 @@ func HandleTasks(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		_, err = GetPreparedInsertIntoTasksStmt().Exec(task.Name, task.Description, task.ProjectID)
+		_, err = GetPreparedInsertIntoTasksStmt().Exec(task.Name, task.Description, task.ProjectID, task.Priority)
 		if err != nil {
 			http.Error(writer, "Bad request", http.StatusBadRequest)
 			return

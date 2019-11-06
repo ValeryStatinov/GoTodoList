@@ -6,7 +6,7 @@ import (
 	"github.com/valerystatinov/TodoList/database"
 )
 
-var insertIntoTasks = "INSERT INTO tasks (name, description, project_id) VALUES ($1, $2, $3)"
+var insertIntoTasks = "INSERT INTO tasks (name, description, project_id, priority) VALUES ($1, $2, $3, $4)"
 
 var getTasksByProjectId = "SELECT * FROM tasks WHERE project_id=$1"
 

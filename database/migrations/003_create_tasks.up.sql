@@ -2,7 +2,8 @@ create table if not exists tasks (
   id serial primary key,
   name text not null,
   description text not null,
-  project_id int not null references projects(id)
+  project_id int not null references projects(id),
+  priority int not null
   -- user_id int not null references users(id)
 );
 
