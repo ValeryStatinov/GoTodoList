@@ -3,22 +3,25 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"todolist/src/database"
 
 	"github.com/gorilla/mux"
 )
 
 type server struct {
-	router *mux.Router
+	router   *mux.Router
+	database *database.Database
 }
 
 func newServer() *server {
-	s := &server{
-		router: mux.NewRouter(),
+	srv := &server{
+		router:   mux.NewRouter(),
+		database: database.New(),
 	}
 
-	s.configureRouter()
+	srv.configureRouter()
 
-	return s
+	return srv
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -32,5 +35,4 @@ func StartServer() {
 	if err != nil {
 		fmt.Println("FAIL")
 	}
-
 }
