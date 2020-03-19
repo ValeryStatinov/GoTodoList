@@ -1,9 +1,9 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"todolist/src/database"
+	"todolist/src/systemlogger"
 
 	"github.com/gorilla/mux"
 )
@@ -29,10 +29,12 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartServer() {
+	systemlogger.Log("Starting server...")
+
 	srv := newServer()
 
 	err := http.ListenAndServe(":8080", srv)
 	if err != nil {
-		fmt.Println("FAIL")
+		systemlogger.Log("Failed to run server")
 	}
 }

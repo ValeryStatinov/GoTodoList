@@ -2,3 +2,4 @@
 .vscode
 request.log
 system.log
+.env
