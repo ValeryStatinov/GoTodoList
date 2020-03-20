@@ -4,8 +4,6 @@ create table if not exists users (
   password text not null
 );
 
--- insert into users (name, password) values ('Valera', 'pass');
-
 alter table projects
   add column if not exists userId
   int not null

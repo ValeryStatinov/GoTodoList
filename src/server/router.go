@@ -18,8 +18,9 @@ func (s *server) configureRouter() {
 
 	withAuth := s.router.NewRoute().Subrouter()
 	withAuth.Use(s.middlewares.Auth())
-	withAuth.HandleFunc("/api/projects/", s.handleGetProjects())
-	withAuth.HandleFunc("/api/projects/{projectId}/tasks/", s.handleGetTasks())
+	withAuth.HandleFunc("/api/projects/", s.handleGetProjects()).Methods("GET")
+	withAuth.HandleFunc("/api/projects/", s.handleCreateProject()).Methods("POST")
+	withAuth.HandleFunc("/api/projects/{projectId}/tasks/", s.handleGetTasks()).Methods("GET")
 
 	s.router.PathPrefix("/").HandlerFunc(defaultHandler)
 }
@@ -59,7 +60,7 @@ func (s *server) handleGetTasks() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if project.UserId != user.Id {
+		if !user.HaveAccesToProject(project) {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -71,6 +72,27 @@ func (s *server) handleGetTasks() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		respondJson(w, tasks)
+	}
+}
+
+func (s *server) handleCreateProject() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		requestData := &models.ProjectRequest{}
+		user := r.Context().Value(ctxkeys.CtxUser).(*models.User)
+		err := json.NewDecoder(r.Body).Decode(requestData)
+		if err != nil {
+			systemlogger.Log(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		project := &models.Project{Name: requestData.Name}
+
+		if !s.store.Projects().Create(project, user) {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		respondJson(w, project)
 	}
 }
 

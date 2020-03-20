@@ -47,3 +47,14 @@ func (pm *ProjectsManager) GetById(id int) (*models.Project, bool) {
 
 	return project, true
 }
+
+func (pm *ProjectsManager) Create(p *models.Project, u *models.User) bool {
+	query := "insert into projects (name, userId) values ($1, $2) returning id"
+	err := pm.db.QueryRow(query, p.Name, u.Id).Scan(&p.Id)
+	if err != nil {
+		systemlogger.Log(err.Error(), query, p.Name, string(u.Id))
+		return false
+	}
+
+	return true
+}
