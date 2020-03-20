@@ -6,6 +6,10 @@ type Project struct {
 	UserId int    `json:"userId,omitempty"`
 }
 
-type ProjectRequest struct {
-	Name string `json:"name"`
+func (p *Project) Validate() bool {
+	if p.Name == "" {
+		return false
+	}
+
+	return true
 }

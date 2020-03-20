@@ -8,3 +8,15 @@ type Task struct {
 	ProjectId   int    `json:"projectId,omitempty"`
 	Completed   bool   `json:"completed"`
 }
+
+func (t *Task) Validate() bool {
+	if t.Priority < 1 || t.Priority > 3 {
+		return false
+	}
+
+	if t.Name == "" {
+		return false
+	}
+
+	return true
+}

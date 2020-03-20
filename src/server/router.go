@@ -21,6 +21,7 @@ func (s *server) configureRouter() {
 	withAuth.HandleFunc("/api/projects/", s.handleGetProjects()).Methods("GET")
 	withAuth.HandleFunc("/api/projects/", s.handleCreateProject()).Methods("POST")
 	withAuth.HandleFunc("/api/projects/{projectId}/tasks/", s.handleGetTasks()).Methods("GET")
+	withAuth.HandleFunc("/api/projects/{projectId}/tasks/", s.handleCreateTask()).Methods("POST")
 
 	s.router.PathPrefix("/").HandlerFunc(defaultHandler)
 }
@@ -76,16 +77,25 @@ func (s *server) handleGetTasks() func(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) handleCreateProject() func(w http.ResponseWriter, r *http.Request) {
+	type request struct {
+		Name string `json:"name"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		requestData := &models.ProjectRequest{}
+		requestData := &request{}
 		user := r.Context().Value(ctxkeys.CtxUser).(*models.User)
 		err := json.NewDecoder(r.Body).Decode(requestData)
 		if err != nil {
 			systemlogger.Log(err.Error())
 			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
 		project := &models.Project{Name: requestData.Name}
+		if !project.Validate() {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
 		if !s.store.Projects().Create(project, user) {
 			w.WriteHeader(http.StatusBadRequest)
@@ -93,6 +103,51 @@ func (s *server) handleCreateProject() func(w http.ResponseWriter, r *http.Reque
 		}
 
 		respondJson(w, project)
+	}
+}
+
+func (s *server) handleCreateTask() func(w http.ResponseWriter, r *http.Request) {
+	type request struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Priority    uint8  `json:"priority"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		requestData := &request{}
+		vars := mux.Vars(r)
+		projectId, err := strconv.Atoi(vars["projectId"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Invalid project id=%s", vars["projectId"])
+			return
+		}
+
+		err = json.NewDecoder(r.Body).Decode(requestData)
+		if err != nil {
+			systemlogger.Log(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		task := &models.Task{
+			Name:        requestData.Name,
+			Description: requestData.Description,
+			Priority:    requestData.Priority,
+		}
+
+		if !task.Validate() {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		task, ok := s.store.Tasks().Create(task, projectId)
+		if !ok {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		respondJson(w, task)
 	}
 }
 

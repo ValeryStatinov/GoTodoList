@@ -35,3 +35,14 @@ func (tm *TasksManager) GetByProjectId(id int) (*[]models.Task, bool) {
 
 	return &tasks, true
 }
+
+func (tm *TasksManager) Create(t *models.Task, projectId int) (*models.Task, bool) {
+	query := "insert into tasks (name, description, priority, completed, projectId) values ($1, $2, $3, $4, $5) returning id"
+	err := tm.db.QueryRow(query, t.Name, t.Description, t.Priority, false, projectId).Scan(&t.Id)
+	if err != nil {
+		systemlogger.Log(err.Error(), query, t.Name, t.Description, string(t.Priority), string(t.Id))
+		return t, false
+	}
+
+	return t, true
+}
