@@ -5,6 +5,6 @@ type Task struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Priority    uint8  `json:"priority"`
-	ProjectId   int    `json:"projectId"`
+	ProjectId   int    `json:"projectId,omitempty"`
 	Completed   bool   `json:"completed"`
 }

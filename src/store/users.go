@@ -37,7 +37,7 @@ func (um *UsersManager) Create(name string) (*models.User, bool) {
 		ok = false
 	}
 
-	user := models.User{Id: id, Name: name, Password: "pass"}
+	user := &models.User{Id: id, Name: name, Password: "pass"}
 
-	return &user, ok
+	return user, ok
 }
