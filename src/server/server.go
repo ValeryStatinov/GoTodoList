@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"todolist/src/server/middlewares"
 	"todolist/src/store"
 	"todolist/src/systemlogger"
 
@@ -9,14 +10,17 @@ import (
 )
 
 type server struct {
-	router *mux.Router
-	store  *store.Store
+	router      *mux.Router
+	store       *store.Store
+	middlewares *middlewares.Middlewares
 }
 
 func newServer() *server {
+	store := store.New()
 	srv := &server{
-		router: mux.NewRouter(),
-		store:  store.New(),
+		router:      mux.NewRouter(),
+		store:       store,
+		middlewares: middlewares.New(store),
 	}
 
 	srv.configureRouter()

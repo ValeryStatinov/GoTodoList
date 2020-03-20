@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func Log(msg string) {
+func Log(msgs ...string) {
 	f, err := os.OpenFile("system.log",
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -13,6 +13,11 @@ func Log(msg string) {
 	}
 	defer f.Close()
 
+	result := ""
+	for _, msg := range msgs {
+		result = result + " " + msg
+	}
+
 	logger := log.New(f, "", log.LstdFlags|log.LUTC)
-	logger.Println(msg)
+	logger.Println(result)
 }

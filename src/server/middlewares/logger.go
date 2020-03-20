@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"todolist/src/systemlogger"
 )
 
 type responseWriter struct {
@@ -18,9 +19,8 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func LogRequest(next http.Handler) http.Handler {
+func logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// userID := r.Context().Value("userID")
 		start := time.Now()
 		rw := &responseWriter{w, http.StatusOK}
 		next.ServeHTTP(rw, r)
@@ -30,7 +30,7 @@ func LogRequest(next http.Handler) http.Handler {
 		f, err := os.OpenFile("request.log",
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Println(err)
+			systemlogger.Log(err.Error())
 		}
 		defer f.Close()
 

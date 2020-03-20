@@ -32,3 +32,22 @@ func (pm *ProjectsManager) GetAll() []models.Project {
 
 	return projects
 }
+
+func (pm *ProjectsManager) GetByUserId(id int) []models.Project {
+	projects := make([]models.Project, 0)
+
+	rows, err := pm.db.Query("select id, name from projects where id=$1", id)
+	if err != nil {
+		systemlogger.Log(err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		project := models.Project{}
+
+		rows.Scan(&project.Id, &project.Name)
+		projects = append(projects, project)
+	}
+
+	return projects
+}
