@@ -13,6 +13,7 @@ type Store struct {
 	db       *sql.DB
 	tasks    *TasksManager
 	projects *ProjectsManager
+	users    *UsersManager
 }
 
 func New() *Store {
@@ -51,4 +52,12 @@ func (s *Store) Projects() *ProjectsManager {
 	}
 
 	return s.projects
+}
+
+func (s *Store) Users() *UsersManager {
+	if s.users == nil {
+		s.users = &UsersManager{s.db}
+	}
+
+	return s.users
 }
