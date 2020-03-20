@@ -2,7 +2,7 @@ package server
 
 import (
 	"net/http"
-	"todolist/src/database"
+	"todolist/src/store"
 	"todolist/src/systemlogger"
 
 	"github.com/gorilla/mux"
@@ -10,13 +10,13 @@ import (
 
 type server struct {
 	router   *mux.Router
-	database *database.Database
+	database *store.Store
 }
 
 func newServer() *server {
 	srv := &server{
 		router:   mux.NewRouter(),
-		database: database.New(),
+		database: store.New(),
 	}
 
 	srv.configureRouter()
@@ -32,6 +32,7 @@ func StartServer() {
 	systemlogger.Log("Starting server...")
 
 	srv := newServer()
+	srv.database.Tasks().GetAll()
 
 	err := http.ListenAndServe(":8080", srv)
 	if err != nil {

@@ -1,4 +1,4 @@
-package database
+package store
 
 import (
 	"database/sql"
@@ -9,11 +9,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Database struct {
-	db *sql.DB
+type Store struct {
+	db    *sql.DB
+	tasks *TasksManager
 }
 
-func New() *Database {
+func New() *Store {
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 
@@ -28,9 +29,17 @@ func New() *Database {
 		systemlogger.Log(err.Error())
 	}
 
-	database := Database{db}
+	database := Store{db: db}
 
 	systemlogger.Log("Connected to database")
 
 	return &database
+}
+
+func (s *Store) Tasks() *TasksManager {
+	if s.tasks == nil {
+		s.tasks = &TasksManager{s.db}
+	}
+
+	return s.tasks
 }
