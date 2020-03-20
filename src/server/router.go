@@ -8,6 +8,7 @@ import (
 
 func (s *server) configureRouter() {
 	s.router.Use(middlewares.LogRequest)
+	s.router.Use(middlewares.CORS)
 
 	s.router.PathPrefix("/").HandlerFunc(defaultHandler)
 }
