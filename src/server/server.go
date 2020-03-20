@@ -9,14 +9,14 @@ import (
 )
 
 type server struct {
-	router   *mux.Router
-	database *store.Store
+	router *mux.Router
+	store  *store.Store
 }
 
 func newServer() *server {
 	srv := &server{
-		router:   mux.NewRouter(),
-		database: store.New(),
+		router: mux.NewRouter(),
+		store:  store.New(),
 	}
 
 	srv.configureRouter()
@@ -32,7 +32,6 @@ func StartServer() {
 	systemlogger.Log("Starting server...")
 
 	srv := newServer()
-	srv.database.Tasks().GetAll()
 
 	err := http.ListenAndServe(":8080", srv)
 	if err != nil {

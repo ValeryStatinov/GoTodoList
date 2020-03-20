@@ -2,7 +2,6 @@ package store
 
 import (
 	"database/sql"
-	"fmt"
 	"todolist/src/models"
 	"todolist/src/systemlogger"
 )
@@ -11,21 +10,26 @@ type TasksManager struct {
 	db *sql.DB
 }
 
-func (tm *TasksManager) GetAll() {
+func (tm *TasksManager) GetAll() []models.Task {
 	tasks := make([]models.Task, 0)
 
 	rows, err := tm.db.Query("SELECT * from tasks")
 	if err != nil {
 		systemlogger.Log(err.Error())
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		task := models.Task{}
-		err = rows.Scan(&task.Id, &task.Name, &task.Description, &task.Priority, &task.Completed)
+		err = rows.Scan(&task.Id, &task.Name, &task.Description, &task.Priority, &task.Completed,
+			&task.ProjectId)
+
+		if err != nil {
+			systemlogger.Log(err.Error())
+		}
+
 		tasks = append(tasks, task)
 	}
 
-	for _, v := range tasks {
-		fmt.Printf("%d %s %s %d %t\n", v.Id, v.Name, v.Description, v.Priority, v.Completed)
-	}
+	return tasks
 }

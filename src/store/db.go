@@ -10,8 +10,9 @@ import (
 )
 
 type Store struct {
-	db    *sql.DB
-	tasks *TasksManager
+	db       *sql.DB
+	tasks    *TasksManager
+	projects *ProjectsManager
 }
 
 func New() *Store {
@@ -42,4 +43,12 @@ func (s *Store) Tasks() *TasksManager {
 	}
 
 	return s.tasks
+}
+
+func (s *Store) Projects() *ProjectsManager {
+	if s.projects == nil {
+		s.projects = &ProjectsManager{s.db}
+	}
+
+	return s.projects
 }
