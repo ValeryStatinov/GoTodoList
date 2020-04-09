@@ -14,7 +14,7 @@ func (t *Task) Validate() bool {
 		return false
 	}
 
-	if t.Name == "" {
+	if t.Name == "" || t.Description == "" {
 		return false
 	}
 
