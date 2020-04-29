@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"os"
 	"todolist/src/server/middlewares"
 	"todolist/src/store"
 	"todolist/src/systemlogger"
@@ -37,7 +38,9 @@ func StartServer() {
 
 	srv := newServer()
 
-	err := http.ListenAndServe(":8080", srv)
+	port := ":" + os.Getenv("PORT")
+
+	err := http.ListenAndServe(port, srv)
 	if err != nil {
 		systemlogger.Log("Failed to run server")
 	}

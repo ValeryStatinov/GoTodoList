@@ -29,6 +29,7 @@ func New() *Store {
 	err = db.Ping()
 	if err != nil {
 		systemlogger.Log(err.Error())
+		os.Exit(1)
 	}
 
 	database := Store{db: db}

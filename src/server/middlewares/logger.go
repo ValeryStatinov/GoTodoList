@@ -27,8 +27,8 @@ func logRequest(next http.Handler) http.Handler {
 
 		record := fmt.Sprintf("%s %s %d %s", r.Method, r.RequestURI, rw.code, time.Now().Sub(start))
 
-		f, err := os.OpenFile("request.log",
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		path := os.Getenv("REQUEST_LOG_PATH")
+		f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			systemlogger.Log(err.Error())
 		}
