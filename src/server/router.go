@@ -5,16 +5,23 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 	"todolist/src/models"
 	"todolist/src/server/ctxkeys"
+	"todolist/src/server/middlewares"
+	"todolist/src/store"
 	"todolist/src/systemlogger"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
 func (s *server) configureRouter() {
 	s.router.Use(s.middlewares.LogRequest())
 	s.router.Use(s.middlewares.CORS())
+
+	s.router.HandleFunc("/api/login/", s.handleLogin()).Methods("POST")
+	s.router.HandleFunc("/api/register/", s.handleRegister()).Methods("POST")
 
 	withAuth := s.router.NewRoute().Subrouter()
 	withAuth.Use(s.middlewares.Auth())
@@ -227,6 +234,101 @@ func (s *server) handleUpdateTask() func(w http.ResponseWriter, r *http.Request)
 		}
 
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (s *server) handleLogin() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var credentials = &store.Credentials{}
+
+		err := json.NewDecoder(r.Body).Decode(&credentials)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		user, ok := s.store.Users().GetByName(credentials.Login)
+		if !ok {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Invalid login or password")
+			return
+		}
+
+		if models.CheckPassword(user, credentials.Login, credentials.Password) {
+			claims := &store.JWTPayload{
+				UserId:         user.Id,
+				StandardClaims: jwt.StandardClaims{},
+				Time:           time.Now().Unix(),
+			}
+
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+			tokenString, err := token.SignedString(middlewares.JwtKey)
+			if err != nil {
+				// If there is an error in creating the JWT return an internal server error
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			type ResponseWithToken struct {
+				Token string `json:"token"`
+			}
+
+			respondJson(w, ResponseWithToken{tokenString})
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Invalid login or password")
+		}
+	}
+}
+
+func (s *server) handleRegister() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var credentials = &store.Credentials{}
+		err := json.NewDecoder(r.Body).Decode(&credentials)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if len(credentials.Password) < 6 || len(credentials.Login) < 4 {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "Login should contain >= 4 symbols, password >= 6")
+			return
+		}
+
+		_, ok := s.store.Users().GetByName(credentials.Login)
+		if ok {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "This login name is already taken")
+			return
+		}
+
+		user, ok := s.store.Users().Create(credentials.Login, credentials.Password)
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		claims := &store.JWTPayload{
+			UserId:         user.Id,
+			StandardClaims: jwt.StandardClaims{},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+		tokenString, err := token.SignedString(middlewares.JwtKey)
+		if err != nil {
+			// If there is an error in creating the JWT return an internal server error
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		type ResponseWithToken struct {
+			Token string `json:"token"`
+		}
+
+		respondJson(w, ResponseWithToken{tokenString})
 	}
 }
 
