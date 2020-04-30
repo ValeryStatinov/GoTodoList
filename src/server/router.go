@@ -313,6 +313,7 @@ func (s *server) handleRegister() func(w http.ResponseWriter, r *http.Request) {
 		claims := &store.JWTPayload{
 			UserId:         user.Id,
 			StandardClaims: jwt.StandardClaims{},
+			Time:           time.Now().Unix(),
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
