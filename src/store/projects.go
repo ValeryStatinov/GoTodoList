@@ -10,8 +10,8 @@ type ProjectsManager struct {
 	db *sql.DB
 }
 
-func (pm *ProjectsManager) GetByUserId(id int) (*[]models.Project, bool) {
-	projects := make([]models.Project, 0)
+func (pm *ProjectsManager) GetByUserId(id int) (*[]models.ProjectWithTasksCount, bool) {
+	projects := make([]models.ProjectWithTasksCount, 0)
 	query := "select id, name from projects where userId=$1"
 
 	rows, err := pm.db.Query(query, id)
@@ -22,7 +22,7 @@ func (pm *ProjectsManager) GetByUserId(id int) (*[]models.Project, bool) {
 	defer rows.Close()
 
 	for rows.Next() {
-		project := models.Project{}
+		project := models.ProjectWithTasksCount{}
 
 		err = rows.Scan(&project.Id, &project.Name)
 		if err != nil {
@@ -30,6 +30,17 @@ func (pm *ProjectsManager) GetByUserId(id int) (*[]models.Project, bool) {
 			return &projects, false
 		}
 		projects = append(projects, project)
+	}
+
+	for index, project := range projects {
+		var count int
+		query = "select count(*) from projects a inner join tasks b on a.id = b.projectId where a.id=$1"
+		err = pm.db.QueryRow(query, project.Id).Scan(&count)
+		if err != nil {
+			systemlogger.Log(err.Error(), query, string(id))
+			return &projects, false
+		}
+		projects[index].TasksCount = count
 	}
 
 	return &projects, true
