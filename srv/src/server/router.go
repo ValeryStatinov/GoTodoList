@@ -35,7 +35,7 @@ func (s *server) configureRouter() {
 }
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello")
+	fmt.Fprint(w, "Hello from Semien!")
 }
 
 func (s *server) handleGetProjects() func(w http.ResponseWriter, r *http.Request) {
