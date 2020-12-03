@@ -1,7 +1,6 @@
 package store
 
 import (
-	"crypto/sha256"
 	"database/sql"
 	"todolist/src/models"
 	"todolist/src/systemlogger"
@@ -56,21 +55,18 @@ func (um *UsersManager) GetById(id int) (*models.User, bool) {
 	return user, ok
 }
 
-func (um *UsersManager) Create(name string, password string) (*models.User, bool) {
+func (um *UsersManager) Create(name string) (*models.User, bool) {
 	var id int
-	h := sha256.New()
-	_, _ = h.Write([]byte(password))
-	hashPassword := h.Sum(nil)
 	ok := true
 	query := "insert into users (name, password) values ($1, $2) returning id"
 
-	err := um.db.QueryRow(query, name, hashPassword).Scan(&id)
+	err := um.db.QueryRow(query, name, "pass").Scan(&id)
 	if err != nil {
 		systemlogger.Log(err.Error(), query, name)
 		ok = false
 	}
 
-	user := &models.User{Id: id, Name: name, Password: hashPassword}
+	user := &models.User{Id: id, Name: name, Password: "pass"}
 
 	return user, ok
 }
