@@ -116,7 +116,9 @@ func (s *server) handleCreateTask() func(w http.ResponseWriter, r *http.Request)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		requestData := &request{}
+		requestData := &request{
+			Priority: 1,
+		}
 		user := r.Context().Value(ctxkeys.CtxUser).(*models.User)
 		vars := mux.Vars(r)
 		projectId, err := strconv.Atoi(vars["projectId"])
