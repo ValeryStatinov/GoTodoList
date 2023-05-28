@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  srv:
+    build: ./srv
+    ports:
+      - "80:8080"
+    depends_on:
+      - db
+    networks:
+      - net
+  db:
+    build: ./postgres
+    networks:
+      - net
+    volumes:
+      - ./postgres/pgdata:/var/lib/postgresql/data
+
+
+networks:
+  net:
+    driver: bridge

@@ -4,10 +4,8 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"todolist/src/models"
 	"todolist/src/server/ctxkeys"
-	"todolist/src/store"
-
-	"github.com/dgrijalva/jwt-go"
 )
 
 var JwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
@@ -15,21 +13,22 @@ var JwtKey = []byte(os.Getenv("JWT_SECRET_KEY"))
 func (md *Middlewares) auth() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tokenStr := r.Header.Get("Token")
-			claims := &store.JWTPayload{}
-			token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-				return JwtKey, nil
-			})
-			if err != nil || !token.Valid {
+			userId := r.Header.Get("Token")
+			if userId == "" {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			user, ok := md.store.Users().GetById(claims.UserId)
+			var user *models.User
+			var ok bool
+			user, ok = md.store.Users().GetByName(userId)
 
 			if !ok {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
+				user, ok = md.store.Users().Create(userId)
+				if !ok {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
 			}
 
 			ctx := context.WithValue(r.Context(), ctxkeys.CtxUser, user)

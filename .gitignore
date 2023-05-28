@@ -2,5 +2,5 @@
 .vscode
 request.log
 system.log
-.env
 __debug_bin
+pgdata/
